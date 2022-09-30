@@ -60,4 +60,4 @@ function to_val(magnitude) {
 }
 ```
 
-where `mag+_limit` is the maximum apparent magnitude a star can have in order to be included in the sonification.
+where `mag+_limit` is the maximum apparent magnitude a star can have in order to be included in the sonification. 
