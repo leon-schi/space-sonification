@@ -1,70 +1,63 @@
-# Getting Started with Create React App
+# Space Sonification
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## How to start
 
-## Available Scripts
+To start a development server, you can use
 
-In the project directory, you can run:
+```
+npm install
+npm start
+```
 
-### `npm start`
+Then, a browser window with the application will open.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## How to use
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+![](space.png) 
 
-### `npm test`
+On the left, you can navigate in the night sky. On the right, you can control the parameters of the sonification. Pressing the play button starts the sonification. While it is running, you cannot navigate further in the sky and changing the parameters on the left will have no effect.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Adjustable Parameters
 
-### `npm run build`
+- Apparent Magnitude Trheshold. The first slider controls how bright a star needs to be (according to its apparent magnitude) to be included in the sonification. It hence simulates light pollution.  Note that the brighnes of a star is measured in units of magnitude where smaller values indicate brighter stars (e.g. the sun has a magnitude of -27). The scale is further logarithmic, i.e., a change in one unit of magnitude corresponds to a change in brightness by a factor of about 2.512. 
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Background Image Volume. The second slider controls how loud the background image will seem, i.e., it controls the volume of this part of the sonification.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- Dampening. Stars of sufficently large apparent magnitude are included in the second part of the sonification, but the volume of their corresponding sound depends on their apparent magnitude. More precisely, a star with a magnitude of $m$ produces a sound of volume porportional to $max(1, m)^{-d}$ where $d$ is the parameter adjustable by the slider. Higher values of $d$ make low brightness stars seem more silently. High values are useful if the number of sufficiently bright stars is large
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- Duration: Controls how long (in seconds) one cycle of the sonification is. The length of one cycle is the time it takes for the line to go from left to right in the image.
 
-### `npm run eject`
+- Loop: If enebled, the sonification is repeaded indefinitely. Otherwise it stops automatically after one cycle.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## How it works
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+The sonification consists of the following two components that are played simultaneously.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Background Image Sonification
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+For sonification of the background image, the image is divided into $n \times m$ rectangular tiles. Each column (consisting of $n$ tiles), corresponds to one characteristic sound with $n$ partial tones of base frequency $50 Hz$. The amplitude of each partial tone is set equal to the average pixel value of the corresponding tile. As the line moves over the image, the gain of each characteristic sound is chosen based on the position of the line. More pecisely, all $m$ gains are $0$ except for the two gains corresponding to leftmost and rightmost gain as seen from the position of the line. Their respective gain is equal to the normalized distance in $x$ direction betwen the mid of the column and the line such that it changes linearly from $0$ to $1$ to $0$ as the line moves.
 
-## Learn More
+### Star Sonification
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Stars of sufficiently large apparent magnitude are sonified using an `AMSynth` from `Tone.js`. Each star triggers a characteristic ASDR envelope. The velocity (or gain) is chosen based on the apparent magnitude $m$ of the star and set to $\frac{1}{2}max(1,m)^{-d}$, where $d$ is the dampening controlled by the second slider. 
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+The pitch is chosen based on the type of the star. One very common star classification scheme (that I leared at school) is the Hertzsprung-Russel diagram:
 
-### Code Splitting
+![](HR.jpg) 
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Here, the $x$-axis shows the spectral type of the star, which indicates its temperature and in turn its color. We respect only the main class of the spectral type, indicated by the letters $O, B, A, F, G, K, M$ (and discard the subclass, indicated by a number). Very hot stars (spectral class O) are blue and reach surface temperatures of up to 30000 K, whereas the other extreme are are red and rather cool type M stars (only having a surface temperature of around 3000 K). The $y$-axis indicates the absolute magnitude of a star, i.e., its brightness if it were at a fixed, standardized distance from earth. As shown by the enclosed regions in the diagram, stars are further grouped into one of the luminosity classes $0, Ia, Ib, II, III, IV, V, VI$ and $VII$. This luminosity class makes a statement about the development and the size of a star. Type $0$ stars are the largest and most massive stars existing, whereas type $V$ stars are rather ordinary stars like our sun (we excluded white dwarfs here who form a special extra class). Based on these two parameters that can be summarized as describing the size and the temperature of a star, we choose a pitch and a note value to play.
 
-### Analyzing the Bundle Size
+In our sonification, the luminosity class determines the octave in which the sound should be played (which is set as corresponding index of the array $[0, Ia, Ib, II, III, IV, V, VI]$), whereas the spectral class determines the exact note, i.e., the matching index in the array $[O, B, A, F, G, K, M]$ determines the note from the array $[C, D, E, F, G, A, H]$. The note value is chosen based on the apparent magnitude such that the tone is sustained longer for brighter stars. More precisely, we use the following piece of code (in case you're interested) 
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```
+function to_val(magnitude) {
+    if (magnitude < 1) return '4n';
+    
+    if (magnitude < 2) return '4n';
+    if (magnitude < mag_limit/2) return '8n';
+    if (magnitude < mag_limit/1.5) return '16n';
+    return '16n';
+}
+```
 
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+where `mag+_limit` is the maximum apparent magnitude a star can have in order to be included in the sonification.

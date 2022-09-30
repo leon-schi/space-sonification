@@ -191,7 +191,7 @@ function App() {
                   aria-label="Small"
                   valueLabelDisplay="auto"
                 />
-                <FormControlLabel control={<Checkbox checked={loop} onChange={handleLoopChange} />} label="Loop" style={{color: 'white'}}/>
+                <FormControlLabel control={<Checkbox style={{color: 'white'}} checked={loop} onChange={handleLoopChange} />} label="Loop" style={{color: 'white'}}/>
               </Box>
             </div>
           </div>
