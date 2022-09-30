@@ -36,3 +36,44 @@
     transform: rotate(360deg);
   }
 }
+
+.aladin-div {
+  width: 400px;
+  height: 400px;
+}
+
+.overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+}
+
+.aladin-container {
+  margin: auto;
+}
+
+.aladin-reticleCanvas {
+  z-index: 4;
+}
+
+.overlay-playing {
+  z-index: 999;
+}
+
+body {
+  background-color: black;
+}
+
+.spacer {
+  margin-top: 100px;
+} 
+
+.slider-parent {
+  margin-top: 50px;
+
+}
+
+.heading {
+  color: white;
+}
