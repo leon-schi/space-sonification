@@ -149,7 +149,7 @@ function App() {
               </Stack>
               <Box width={800} style={{ margin: 'auto', marginTop: '50px' }}>
                 <Stack direction="row" spacing={2}>
-                  <h6 className='heading'> Sonify Objects with Apparent Maginitude below (Adjust Light Pollution Level) </h6>
+                  <h6 className='heading'> Sonify Objects with Apparent Magnitude below (Adjust Light Pollution Level) </h6>
                   <IconButton aria-label="delete" onClick={openDialog}>
                     <InfoIcon sx={{ color: 'white' }} />
                   </IconButton>
