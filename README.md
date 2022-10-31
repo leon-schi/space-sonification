@@ -41,7 +41,7 @@ For sonification of the background image, the image is divided into $n \times m$
 
 Stars of sufficiently large apparent magnitude are sonified using an `AMSynth` from `Tone.js`. Each star triggers a characteristic ASDR envelope. The velocity (or gain) is chosen based on the apparent magnitude $m$ of the star and set to $\frac{1}{2}max(1,m)^{-d}$, where $d$ is the dampening controlled by the second slider. 
 
-The pitch is chosen based on the type of the star. One very common star classification scheme (that I leared at school) is the Hertzsprung-Russel diagram:
+The pitch is chosen based on the type of the star. One very common star classification scheme is the Hertzsprung-Russel diagram:
 
 ![](HR.jpg) 
 
